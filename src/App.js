@@ -4,7 +4,9 @@ import SearchIcon from "./search.svg";
 import MovieCard from "./MovieCard";
 import "./App.css";
 
-const API_URL = "http://www.omdbapi.com?apikey=b6003d8a";
+const ApiKey = process.env.REACT_APP_API_KEY;
+
+const API_URL = `https://www.omdbapi.com?apikey=${ApiKey}`;
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,21 +16,23 @@ const App = () => {
     _.debounce(async (title) => {
       const response = await fetch(`${API_URL}&s=${title}`);
       const data = await response.json();
-
       setMovies(data.Search);
     }, 500),
-    []
+    [] // No dependencies, as we don't want to recreate the debounce function
   );
 
   useEffect(() => {
-    // Run once when the component mounts
     searchMovies("Batman");
-  }, [searchMovies]);
+  }, [searchMovies, searchTerm]);
 
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
-    searchMovies(e.target.value);
   };
+
+  const handleSearchClick = () => {
+    searchMovies(searchTerm);
+  };
+
   return (
     <div className="app">
       <h1>MovieFlix</h1>
@@ -39,17 +43,13 @@ const App = () => {
           onChange={handleInputChange}
           placeholder="Search for Movies"
         />
-        <img
-          src={SearchIcon}
-          alt="search"
-          onClick={() => searchMovies(searchTerm)}
-        />
+        <img src={SearchIcon} alt="search" onClick={handleSearchClick} />
       </div>
 
       {movies?.length > 0 ? (
         <div className="container">
           {movies.map((movie) => (
-            <MovieCard movie={movie} />
+            <MovieCard key={movie.imdbID} movie={movie} />
           ))}
         </div>
       ) : (
